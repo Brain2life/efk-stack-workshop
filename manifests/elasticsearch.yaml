@@ -1,0 +1,49 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: quickstart
+  namespace: es-operator
+spec:
+  version: 9.3.2
+  nodeSets:
+  - name: default
+    count: 1 # Optimized to 1 node for testing (production usually uses 3)
+    config:
+      node.roles: ["master", "data", "ingest"]
+      node.store.allow_mmap: false
+      xpack.ml.enabled: false 
+      xpack.security.enabled: true
+      xpack.watcher.enabled: false 
+    podTemplate:
+      spec:
+        initContainers:
+        - name: fix-permissions
+          image: busybox
+          # This command recursively changes ownership to the elasticsearch user (1000)
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+          - name: elasticsearch-data
+            mountPath: /usr/share/elasticsearch/data
+        containers:
+        - name: elasticsearch
+          resources:
+            requests:
+              memory: 1Gi
+              cpu: 200m 
+            limits:
+              memory: 1.5Gi 
+              cpu: 1000m
+          env:
+          - name: ES_JAVA_OPTS
+            value: "-Xms512m -Xmx512m" 
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Gi
