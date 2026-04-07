@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lucky
+spec:
+  containers:
+  - name: lucky-container
+    image: busybox
+    args:
+    - /bin/sh
+    - -c
+    - |
+      i=0
+      while true; do
+        echo "Your lucky number is $RANDOM !"
+        sleep 1
+      done
