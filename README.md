@@ -12,8 +12,8 @@
   - [ECK Helm Chart](#eck-helm-chart)
   - [Deploying Elasticsearch](#deploying-elasticsearch)
   - [Deploying Kibana](#deploying-kibana)
-  - [Deploying Fluentd](#deploying-fluentd)
-  - [Debugging Commands](#debugging-commands)
+- [Deploying Fluentd](#deploying-fluentd)
+- [Debugging Commands](#debugging-commands)
 
 This workshop shows the basic concept of installing, configuring and functioning of the EFK monitoring stack in Kubernetes environment
 
@@ -98,7 +98,7 @@ curl http://localhost:8081
 curl http://localhost:8081
 ```
 
-### Elastic Cloud on Kubernetes (ECK) Operator
+## Elastic Cloud on Kubernetes (ECK) Operator
 
 The [**Elastic Cloud on Kubernetes (ECK) Operator**](https://www.elastic.co/docs/deploy-manage/deploy/cloud-on-k8s) is an application-specific controller that extends the Kubernetes API to manage the lifecycle of the entire Elastic Stack on a K8s cluster.
 
@@ -424,7 +424,7 @@ Use `elastic` username and the password to access the UI:
 
 ![](./img/kibana_ui_2.png)
 
-### Deploying Fluentd
+## Deploying Fluentd
 
 There are two main options to deploy Fluentd into Kubernetes cluster:
 1. By using Kubernetes Manifest files as Daemonset. For more information, see [Fluentd DaemonSet](https://docs.fluentd.org/container-deployment/kubernetes#fluentd-daemonset)
@@ -455,7 +455,7 @@ To view logs of the fluentd pods:
 kubectl logs -n kube-system -l k8s-app=fluentd-logging
 ```
 
-### Debugging Commands
+## Debugging Commands
 
 If you need to restart Operator:
 ```bash
