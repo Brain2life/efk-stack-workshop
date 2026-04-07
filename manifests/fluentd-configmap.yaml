@@ -5,7 +5,6 @@ metadata:
   namespace: kube-system
 data:
   fluent.conf: |-
-    # Grab everything in the standard container log directory
     <source>
       @type tail
       path /var/log/containers/*.log
@@ -14,10 +13,26 @@ data:
       tag kubernetes.*
       <parse>
         @type json
+        # These two lines handle the K8s log timestamp correctly
+        time_key time
+        time_format %Y-%m-%dT%H:%M:%S.%NZ
       </parse>
     </source>
 
-    # Send everything to the Fluentd pod's own console
-    <match **>
-      @type stdout
+    <match kubernetes.**>
+      @type elasticsearch
+      host quickstart-es-http.es-operator.svc
+      port 9200
+      scheme https
+      ssl_verify false
+      user elastic
+      # Pull the password from the secret created by ECK
+      password "#{ENV['ES_PASSWORD']}"
+      logstash_format true
+      logstash_prefix fluentd
+      <buffer>
+        @type file
+        path /tmp/fluentd-elasticserch.buffer
+        flush_interval 5s
+      </buffer>
     </match>
