@@ -68,6 +68,21 @@ You should see the message similar to this:
 Hello Kubernetes bootcamp! | Running on: 146eac9d3e67 | v=1
 ```
 
+To deploy app into Kubernetes cluster:
+```bash
+kubectl apply -f app/workshop-app.yaml
+```
+
+To port-forward:
+```bash
+kubectl port-forward deployment/kubernetes-bootcamp 8081:8080
+```
+then you can send some requests:
+```bash
+curl http://localhost:8081
+curl http://localhost:8081
+```
+
 ### Elastic Cloud on Kubernetes (ECK) Operator
 
 The [**Elastic Cloud on Kubernetes (ECK) Operator**](https://www.elastic.co/docs/deploy-manage/deploy/cloud-on-k8s) is an application-specific controller that extends the Kubernetes API to manage the lifecycle of the entire Elastic Stack on a K8s cluster.
@@ -144,6 +159,10 @@ Configuration of the ECK Operator is done via `values.yaml`.
 
 Create custom values for our ECK operator:
 ```bash
+# Enable Fluentd
+fluentd:
+  enable: true
+
 # Tells Helm to automatically install Custom Resource Definitions.
 # This allows Kubernetes to understand "kind: Elasticsearch" or "kind: Kibana".
 installCRDs: true
@@ -390,9 +409,45 @@ Use `elastic` username and the password to access the UI:
 
 ![](./img/kibana_ui_2.png)
 
+### Deploying Fluentd
+
+There are two main options to deploy Fluentd into Kubernetes cluster:
+1. By using Kubernetes Manifest files as Daemonset. For more information, see [Fluentd DaemonSet](https://docs.fluentd.org/container-deployment/kubernetes#fluentd-daemonset)
+2. By using Fluent Helm Chart Operator [fluent.github.io/helm-charts](https://fluent.github.io/helm-charts)
+
+For our demo we will use the 1st method by using Daemonset manifest file.
+
+To apply manifests:
+```bash
+kubectl apply -f manifests/fluentd-rbac.yaml
+kubectl apply -f manifests/fluentd-configmap.yaml
+kubectl apply -f manifests/fluentd-daemonset.yaml
+```
+
+To verify that Fluentd pods are running:
+```bash
+kubectl get pods -n kube-system | grep fluentd
+```
+You should see the output similar to this:
+```bash
+fluentd-bw2sj                      1/1     Running   0          48s
+fluentd-f2nhw                      1/1     Running   0          48s
+fluentd-nqclv                      1/1     Running   0          48s
+```
+
+To view logs of the fluentd pods:
+```bash
+kubectl logs -n kube-system -l k8s-app=fluentd-logging
+```
+
 ### Debugging Commands
 
 If you need to restart Operator:
 ```bash
 kubectl rollout restart statefulset quickstart-es-default -n es-operator
+```
+
+To restart Fluentd Daemonset:
+```bash
+kubectl rollout restart ds fluentd -n kube-system
 ```
