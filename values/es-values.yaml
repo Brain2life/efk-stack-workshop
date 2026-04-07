@@ -1,3 +1,6 @@
+fluentd:
+  enable: true
+
 installCRDs: true
 
 replicaCount: 1
