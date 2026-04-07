@@ -1,5 +1,20 @@
 # efk-stack-workshop
 
+## Table of Contents
+- [What is EFK Stack?](#what-is-efk-stack)
+  - [ElasticSearch](#elasticsearch)
+- [How EFK Stack Works in Kubernetes Cluster?](#how-efk-stack-works-in-kubernetes-cluster)
+- [Workshop](#workshop)
+  - [Prerequisites](#prerequisites)
+  - [Kubernetes Cluster](#kubernetes-cluster)
+- [Sample App](#sample-app)
+- [Elastic Cloud on Kubernetes (ECK) Operator](#elastic-cloud-on-kubernetes-eck-operator)
+  - [ECK Helm Chart](#eck-helm-chart)
+  - [Deploying Elasticsearch](#deploying-elasticsearch)
+  - [Deploying Kibana](#deploying-kibana)
+  - [Deploying Fluentd](#deploying-fluentd)
+  - [Debugging Commands](#debugging-commands)
+
 This workshop shows the basic concept of installing, configuring and functioning of the EFK monitoring stack in Kubernetes environment
 
 ![](./img/efk_stack.png)
