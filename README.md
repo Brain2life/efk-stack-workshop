@@ -467,8 +467,8 @@ fluent.conf: |-
 ```
 
 > [!CAUTION] 
-> Without specifying `time_key time` and `time_format` fluentd will automatically mark log entries from epoch time - 01 Jan 1970  
-> To avoid this, alway specify these attributes in fluentd config
+> Without specifying `time_key time` and `time_format` fluentd will automatically mark log entries from epoch time: 01 Jan 1970  
+> To avoid this, always specify these attributes in fluentd config
 
 ## Configuring Connection between ElasticSearch and Kibana
 
