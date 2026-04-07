@@ -13,7 +13,11 @@
   - [Deploying Elasticsearch](#deploying-elasticsearch)
   - [Deploying Kibana](#deploying-kibana)
 - [Deploying Fluentd](#deploying-fluentd)
+- [Configuring Timestamp in Log Entries](#configuring-timestamp-in-log-entries)
+- [Configuring Connection between ElasticSearch and Kibana](#configuring-connection-between-elasticsearch-and-kibana)
+- [Configuring Logs View in Kibana](#configuring-logs-view-in-kibana)
 - [Debugging Commands](#debugging-commands)
+- [References](#references)
 
 This workshop shows the basic concept of installing, configuring and functioning of the EFK monitoring stack in Kubernetes environment
 
@@ -68,34 +72,21 @@ kubectl get no
 
 ## Sample App
 
-Sample App is a guestbook or a "synthetic" logger from Google Bootcamp on Kubernetes. The Docker image repository is [here](https://gcr.io/google-samples/kubernetes-bootcamp:v1).
-
-To run the app locally:
+Sample App is a single Pod that periodically generates a "lucky" integer number between 0 and 32767 in the following format:
 ```bash
-docker run -p 8080:8080 gcr.io/google-samples/kubernetes-bootcamp:v1
-```
-then run sample queries:
-```bash
-curl localhost:8080
-```
-You should see the message similar to this:
-```bash
-Hello Kubernetes bootcamp! | Running on: 146eac9d3e67 | v=1
+Your lucky number is <random_number> !
 ```
 
-To deploy app into Kubernetes cluster:
+The output goes to standard stdout.
+
+To deploy app:
 ```bash
-kubectl apply -f app/workshop-app.yaml
+kubectl apply -f app/lucky-pod.yaml
 ```
 
-To port-forward:
+To view logs:
 ```bash
-kubectl port-forward deployment/kubernetes-bootcamp 8081:8080
-```
-then you can send some requests:
-```bash
-curl http://localhost:8081
-curl http://localhost:8081
+kubectl logs lucky
 ```
 
 ## Elastic Cloud on Kubernetes (ECK) Operator
@@ -455,6 +446,68 @@ To view logs of the fluentd pods:
 kubectl logs -n kube-system -l k8s-app=fluentd-logging
 ```
 
+## Configuring Timestamp in Log Entries
+
+The log parser configuration for Fluentd is done via `<parse></parse>` directive in `fluentd-configmap.yaml` file:
+```yaml
+fluent.conf: |-
+  <source>
+    @type tail
+    path /var/log/containers/*.log
+    exclude_path ["/var/log/containers/fluentd*"]
+    pos_file /tmp/fluentd-containers.log.pos
+    tag kubernetes.*
+    <parse>
+      @type json
+      # These two lines handle the K8s log timestamp correctly
+      time_key time
+      time_format %Y-%m-%dT%H:%M:%S.%NZ
+    </parse>
+  </source>
+```
+
+> [!CAUTION] 
+> Without specifying `time_key time` and `time_format` fluentd will automatically mark log entries from epoch time - 01 Jan 1970  
+> To avoid this, alway specify these attributes in fluentd config
+
+## Configuring Connection between ElasticSearch and Kibana
+
+1. Get the Encoded Elastic Password:
+```bash
+kubectl get secret quickstart-es-elastic-user -n es-operator -o jsonpath='{.data.elastic}'
+```
+2. Paste the string you copied into the `elastic:` field in `manifests/fluentd-es-secret.yaml` file
+3. Apply changes:
+```bash
+kubectl apply -f manifests/fluentd-es-secret.yaml
+```
+4. Establish connection between your local machine's terminal and the Elasticsearch service running inside the Minikube VM:
+```bash
+kubectl port-forward svc/quickstart-es-http 9200:9200 -n es-operator
+```
+5. Verify the Password Variable:
+```bash
+export ES_PASSWORD=$(kubectl get secret quickstart-es-elastic-user -n es-operator -o jsonpath='{.data.elastic}' | base64 --decode)
+echo $ES_PASSWORD # Confirm it prints a string, not blank
+```
+6. Run the index check:
+```bash
+curl -u "elastic:$ES_PASSWORD" -k "https://localhost:9200/_cat/indices?v"
+```
+If you see a table with name like `fluentd-2026.04.07` then data is reaching Elasticsearch
+
+## Configuring Logs View in Kibana
+
+1. Login into your Kibana instance at `https://localhost:5601` with `elastic` username and your retrieved password
+2. Go to **Stack Management** > **Data Views**
+3. Create a view for `fluentd-*`:
+
+![](./img/kibana_view_config.png) 
+
+4. Go to **Discover** select matching logs group:
+
+![](./img/kibana_logs.png)
+
 ## Debugging Commands
 
 If you need to restart Operator:
@@ -466,3 +519,8 @@ To restart Fluentd Daemonset:
 ```bash
 kubectl rollout restart ds fluentd -n kube-system
 ```
+
+## References
+- [Fluentd Docs: Kubernetes Deployment](https://docs.fluentd.org/container-deployment/kubernetes)
+- [Blog by Prince Onyeanuna: Installing Fluentd: A Step-by-Step Guide](https://www.everythingdevops.dev/blog/fluentd-installation)
+- [Blog by Jubril Oyetunji: Fluentd Architecture and Key Concepts](https://www.everythingdevops.dev/blog/fluentd-architecture)
