@@ -19,9 +19,13 @@
 - [Debugging Commands](#debugging-commands)
 - [References](#references)
 
-This workshop shows the basic concept of installing, configuring and functioning of the EFK monitoring stack in Kubernetes environment
+This workshop shows the basic concept of installing, configuring and functioning of the EFK monitoring stack in Kubernetes environment.
 
 ![](./img/efk_stack.png)
+
+👉 This workshop is a part of [The Kubernetes Interview Cookbook](https://maxat-akbanov.com/l/the-kubernetes-interview-cookbook-sample).
+
+![](./img/The_Kubernetes_Interview_Cookbook_Cover.png)
 
 ## What is EFK Stack?
 
